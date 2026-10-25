@@ -41,6 +41,32 @@
   .tools button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
   select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;font-size:13px;max-width:100%}
   kbd{background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:12px}
+/* mobile-patch */
+  html{-webkit-text-size-adjust:100%}
+  button{touch-action:manipulation}
+  select{font-size:16px}
+  .swipe-hint{display:none}
+  @media (pointer:coarse){
+    .keys{display:none}
+    .swipe-hint{display:inline}
+  }
+  @media (max-width:600px){
+    .wrap{padding:14px 12px calc(28px + env(safe-area-inset-bottom))}
+    header h1{font-size:20px}
+    .chips{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -12px 14px;padding:0 12px 4px;scrollbar-width:none}
+    .chips::-webkit-scrollbar{display:none}
+    .chip{flex:none;padding:9px 14px;font-size:14px}
+    .card{padding:18px;min-height:340px}
+    .q{font-size:19px}
+    .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .reveal{grid-column:1 / -1;order:-1;min-height:52px;font-size:16px}
+    button.b{min-height:48px}
+    .tools{flex-direction:column;align-items:stretch}
+    .tools > span{min-width:0;max-width:100%}
+    .tools > span:last-child{display:flex;gap:8px}
+    select{flex:1 1 0;width:0;min-width:0;min-height:44px}
+    .tools button{min-height:44px;padding:8px 14px;font-size:15px}
+  }
 </style>
 </head>
 <body>
@@ -67,7 +93,7 @@
   </div>
 
   <div class="tools">
-    <span><kbd>←</kbd> <kbd>→</kbd> move &nbsp; <kbd>Space</kbd> show/hide</span>
+    <span class="keys"><kbd>←</kbd> <kbd>→</kbd> move &nbsp; <kbd>Space</kbd> show/hide</span><span class="swipe-hint">Swipe the card to move between questions</span>
     <span>
       <select id="jump" aria-label="Jump to question"></select>
       <button id="shuffle">Shuffle</button>
@@ -243,6 +269,16 @@ $("chips").onclick = e => {
   filter = b.dataset.c; buildList();
 };
 buildList();
+</script>
+<script>/* mobile-patch: swipe the card to move */
+(function(){
+  var card=document.querySelector('.card'), x0=null, y0=null;
+  card.addEventListener('touchstart',function(e){x0=e.touches[0].clientX;y0=e.touches[0].clientY;},{passive:true});
+  card.addEventListener('touchend',function(e){
+    if(x0===null)return; var dx=e.changedTouches[0].clientX-x0, dy=e.changedTouches[0].clientY-y0; x0=null;
+    if(Math.abs(dx)>60 && Math.abs(dx)>Math.abs(dy)*1.5){ document.getElementById(dx<0?'next':'prev').click(); }
+  },{passive:true});
+})();
 </script>
 </body>
 </html>

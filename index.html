@@ -3,52 +3,128 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#232F3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Amazon Open Lanes</title>
 <style>
-  :root{ --navy:#232F3E; --orange:#FF9900; --bg:#F5F6F8; --line:#DDE1E6; --muted:#5F6B7A; }
-  *{box-sizing:border-box}
-  html,body{margin:0;height:100%;background:var(--bg);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-  .app{height:100vh;height:100dvh;display:flex;flex-direction:column}
-  nav{flex:none;display:flex;align-items:center;gap:8px;padding:10px 16px;padding-top:max(10px, env(safe-area-inset-top));background:var(--navy)}
-  .brand{color:#fff;font-weight:700;font-size:15px;margin-right:auto;white-space:nowrap}
-  .brand b{color:var(--orange)}
-  .tab{border:0;border-radius:8px;padding:8px 14px;font-size:15px;font-weight:600;cursor:pointer;background:transparent;color:#C9D1DA}
+  :root{ --navy:#232F3E; --navy2:#131921; --orange:#FF9900; --bg:#F5F6F8; --muted:#5F6B7A; --card:#FFFFFF; --ink:#1F2933; --line:#DDE1E6; }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;background:var(--navy2);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+  button{font:inherit}
+
+  /* ---------- Start screen ---------- */
+  .home{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        padding:calc(32px + env(safe-area-inset-top)) 16px calc(32px + env(safe-area-inset-bottom));
+        background:radial-gradient(120% 80% at 50% 0%, #2E3D50 0%, var(--navy2) 70%)}
+  .home h1{margin:0;color:#fff;font-size:30px;text-align:center;letter-spacing:-.01em}
+  .home h1 b{color:var(--orange)}
+  .home p.sub{margin:8px 0 28px;color:#AEB8C4;font-size:15px;text-align:center;max-width:420px}
+  .choices{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:720px}
+  .choice{display:flex;flex-direction:column;align-items:flex-start;gap:8px;text-align:left;cursor:pointer;
+          background:var(--card);border:0;border-radius:16px;padding:22px;min-height:180px;
+          box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .15s ease, box-shadow .15s ease}
+  .choice:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.35)}
+  .choice:active{transform:scale(.98)}
+  .icon{width:48px;height:48px;border-radius:12px;background:#FFF4E0;display:grid;place-items:center;font-size:26px}
+  .choice h2{margin:4px 0 0;font-size:20px;color:var(--navy)}
+  .choice span.d{color:var(--muted);font-size:14px}
+  .choice span.go{margin-top:auto;padding-top:6px;color:#B86E00;font-weight:700;font-size:15px}
+  @media (max-width:600px){
+    .home{justify-content:flex-start;padding-top:calc(48px + env(safe-area-inset-top))}
+    .home h1{font-size:26px}
+    .choices{grid-template-columns:1fr}
+    .choice{min-height:0;display:grid;grid-template-columns:48px 1fr;column-gap:14px;row-gap:2px;align-items:center;padding:18px}
+    .choice .icon{grid-row:span 2}
+    .choice h2{margin:0;font-size:18px}
+    .choice span.go{display:none}
+  }
+
+  /* ---------- App view ---------- */
+  .app{height:100vh;height:100dvh;display:none;flex-direction:column;background:var(--bg)}
+  body.in .app{display:flex}
+  body.in .home{display:none}
+  nav{flex:none;display:flex;align-items:center;gap:10px;background:var(--navy);
+      padding:12px max(16px, env(safe-area-inset-right)) 12px max(16px, env(safe-area-inset-left));
+      padding-top:calc(12px + env(safe-area-inset-top))}
+  .homebtn{display:flex;align-items:center;gap:8px;background:none;border:0;color:#fff;cursor:pointer;
+           font-weight:700;font-size:18px;padding:8px 6px;margin-right:auto;border-radius:10px;white-space:nowrap}
+  .homebtn b{color:var(--orange)}
+  .homebtn .h{font-size:20px;line-height:1}
+  .tabs{display:flex;gap:8px}
+  .tab{border:0;border-radius:10px;padding:12px 20px;font-size:17px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.08);color:#D5DCE4;min-height:48px}
   .tab[aria-selected="true"]{background:var(--orange);color:var(--navy)}
   main{flex:1;position:relative;min-height:0}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);display:none}
   iframe.on{display:block}
-  .err{position:absolute;inset:0;display:none;align-items:center;justify-content:center;color:var(--muted);padding:16px;text-align:center}
-  @media (max-width:520px){ .brand{display:none} .tab{flex:1} }
+  @media (max-width:600px){
+    nav{gap:8px;padding-left:max(10px, env(safe-area-inset-left));padding-right:max(10px, env(safe-area-inset-right))}
+    .homebtn{margin-right:0;padding:8px 10px;background:rgba(255,255,255,.08);min-height:48px}
+    .homebtn .t{display:none}
+    .tabs{flex:1}
+    .tab{flex:1;padding:12px 8px;font-size:16px}
+  }
 </style>
 </head>
 <body>
-<div class="app">
-  <nav role="tablist">
-    <span class="brand">Amazon <b>Open Lanes</b></span>
-    <button class="tab" role="tab" data-tab="simulator">Route Simulator</button>
-    <button class="tab" role="tab" data-tab="qa">Q&amp;A Practice</button>
-  </nav>
-  <main>
-    <iframe id="f-simulator" title="Route Simulator" data-src="simulator.html"></iframe>
-    <iframe id="f-qa" title="Q&amp;A Practice" data-src="qa.html"></iframe>
-  </main>
-</div>
+  <!-- Start screen -->
+  <section class="home">
+    <h1>Amazon <b>Open Lanes</b></h1>
+    <p class="sub">Choose where to start. You can switch anytime from the top bar.</p>
+    <div class="choices">
+      <button class="choice" data-go="simulator">
+        <span class="icon">🚚</span>
+        <h2>Route Simulator</h2>
+        <span class="d">Build a shipment and compare price and speed with today's options.</span>
+        <span class="go">Open →</span>
+      </button>
+      <button class="choice" data-go="qa">
+        <span class="icon">💬</span>
+        <h2>Q&amp;A Practice</h2>
+        <span class="d">50 likely judge questions. Answer out loud, then reveal.</span>
+        <span class="go">Open →</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- App: top bar + one page per tab -->
+  <div class="app">
+    <nav>
+      <button class="homebtn" data-go="home" aria-label="Back to start screen"><span class="h">⌂</span><span class="t">Amazon <b>Open Lanes</b></span></button>
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-go="simulator">Simulator</button>
+        <button class="tab" role="tab" data-go="qa">Q&amp;A Practice</button>
+      </div>
+    </nav>
+    <main>
+      <iframe id="f-simulator" title="Route Simulator" data-src="simulator.html"></iframe>
+      <iframe id="f-qa" title="Q&amp;A Practice" data-src="qa.html"></iframe>
+    </main>
+  </div>
+
 <script>
-  // Each tab is its own page, loaded the first time it's opened.
-  function show(name){
-    if (!document.getElementById('f-'+name)) name = 'simulator';
-    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === name));
+  // #simulator or #qa opens a tab; no hash = start screen. Phone back button works.
+  function route(){
+    const name = location.hash.slice(1);
+    const frame = document.getElementById('f-'+name);
+    document.body.classList.toggle('in', !!frame);
+    if (!frame) { window.scrollTo(0,0); return; }
+    document.querySelectorAll('.tab').forEach(b => b.setAttribute('aria-selected', b.dataset.go === name));
     document.querySelectorAll('iframe').forEach(f => {
-      const on = f.id === 'f-'+name;
+      const on = f === frame;
       if (on && !f.src) f.src = f.dataset.src;
       f.classList.toggle('on', on);
-      if (on) f.addEventListener('load', () => { try { f.contentWindow.focus(); } catch(e){} }, { once:true });
     });
-    if (location.hash !== '#'+name) history.replaceState(null, '', '#'+name);
+    try { frame.contentWindow.focus(); } catch(e){}
   }
-  document.querySelectorAll('.tab').forEach(b => b.onclick = () => show(b.dataset.tab));
-  window.addEventListener('hashchange', () => show(location.hash.slice(1)));
-  show(location.hash.slice(1) || 'simulator');
+  document.querySelectorAll('[data-go]').forEach(b => b.addEventListener('click', () => {
+    const name = b.dataset.go;
+    if (name === 'home') { history.pushState(null, '', location.pathname); route(); }
+    else location.hash = name;
+  }));
+  window.addEventListener('hashchange', route);
+  window.addEventListener('popstate', route);
+  route();
 </script>
 </body>
 </html>

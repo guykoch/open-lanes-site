@@ -241,6 +241,38 @@
   }
   .tag-win { background: #E7F4EE; color: var(--success-green); }
   .tag-lose { background: #FDE8E8; color: var(--danger-red); }
+/* mobile-patch */
+  html{-webkit-text-size-adjust:100%}
+  button{touch-action:manipulation}
+  .control-grid{grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr))}
+  @media (hover:none){
+    .toggle-btn:hover{border-color:var(--border-color);background:#FFF}
+    .toggle-btn.active:hover{border-color:var(--amazon-orange);background:#FFF4E5}
+    tr:hover{background:transparent}
+  }
+  @media (max-width:600px){
+    body{padding:12px 12px calc(24px + env(safe-area-inset-bottom))}
+    header{margin-bottom:16px}
+    header h1{font-size:21px}
+    header p{font-size:14px}
+    .control-card,.visualization-card,.table-card{padding:14px;border-radius:12px;margin-bottom:16px}
+    .control-grid{gap:16px}
+    .toggle-btn{min-width:0;min-height:52px;font-size:14px;padding:10px 8px}
+    .metrics-summary{grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+    .metric-box{padding:12px}
+    .metric-title{font-size:11px}
+    .metric-val{font-size:18px;line-height:1.25}
+    .metric-desc{font-size:12px}
+    .visual-header{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:12px}
+    .visual-header h2{font-size:16px}
+    .visual-header::after,.table-card h2::after{content:"Swipe sideways to see it all \2192";display:block;font-size:12px;font-weight:600;color:var(--text-muted);margin-top:4px}
+    .route-map-container{overflow-x:auto;-webkit-overflow-scrolling:touch;padding:16px 8px;margin-bottom:16px}
+    svg.pipeline{min-width:660px;height:150px}
+    .story-card{padding:14px}
+    .timeline-step{font-size:14px}
+    table{min-width:760px;font-size:13px}
+    th,td{padding:10px}
+  }
 </style>
 </head>
 <body>
