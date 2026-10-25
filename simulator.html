@@ -317,6 +317,31 @@
     .table-card td:nth-child(5),.table-card td:nth-child(6){grid-column:1 / -1}
     .table-card .tag{margin-top:4px}
   }
+/* patch-3 */
+  header h1{font-size:22px}
+  .mini{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+  .mini-g .l{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);margin-bottom:4px}
+  .seg{display:flex;gap:3px;padding:3px;background:#F0F2F2;border-radius:9px}
+  .seg button{flex:1;border:0;background:transparent;border-radius:7px;padding:8px 4px;font-size:13px;font-weight:600;color:var(--text-primary);cursor:pointer;white-space:nowrap}
+  .seg button.on{background:#FFF;color:#8C4B00;box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 1.5px var(--amazon-orange)}
+  .mini-total{grid-column:1 / -1;font-size:14px;color:var(--text-muted)}
+  .mini-total b{color:var(--amazon-dark);font-size:16px}
+  @media (max-width:600px){
+    header{margin-bottom:10px}
+    header h1{font-size:17px}
+    .control-card{padding:10px 10px 12px}
+    .control-grid{gap:8px}
+    .control-group label{font-size:12px;margin-bottom:4px}
+    .toggle-btn{min-height:0;padding:6px 6px;font-size:13px;line-height:1.2}
+    .toggle-btn br{display:none}
+    .toggle-btn small{display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:1px}
+    .toggle-btn.active small{color:#8C4B00}
+    .mini{grid-template-columns:1fr;gap:8px;margin-bottom:12px}
+    .mini-g{display:grid;grid-template-columns:72px 1fr;align-items:center;gap:8px}
+    .mini-g .l{margin:0;font-size:11px}
+    .seg button{min-height:38px;font-size:13px}
+    .mini-total{margin-top:2px}
+  }
 </style>
 </head>
 <body>
@@ -324,7 +349,6 @@
 <div class="container">
   <header>
     <h1>Amazon Open Lanes Route & Pricing Simulator</h1>
-    <p>Compare end-to-end routing storylines, pricing tiers, and legacy freight alternatives.</p>
   </header>
 
   <!-- Interactive Route Configurator -->
@@ -400,6 +424,20 @@
     <div class="visual-header">
       <h2>Live Journey Simulation: New York &rarr; Philadelphia Corridor</h2>
       <div class="transit-badge" id="live-transit-badge">Same-Day Direct Delivery</div>
+    </div>
+
+    <!-- Same 6 options, repeated here so you can play without scrolling -->
+    <div class="mini">
+      <div class="mini-g"><span class="l">Booking</span><div class="seg">
+        <button data-k="tier" data-v="scheduled" onclick="setTier('scheduled')">Scheduled $120</button>
+        <button data-k="tier" data-v="flexible" onclick="setTier('flexible')">Flexible $90</button></div></div>
+      <div class="mini-g"><span class="l">First mile</span><div class="seg">
+        <button data-k="firstMile" data-v="dropoff" onclick="setFirstMile('dropoff')">Drop-off $0</button>
+        <button data-k="firstMile" data-v="pickup" onclick="setFirstMile('pickup')">Pickup +$75</button></div></div>
+      <div class="mini-g"><span class="l">Last mile</span><div class="seg">
+        <button data-k="lastMile" data-v="collect" onclick="setLastMile('collect')">Dock pickup $0</button>
+        <button data-k="lastMile" data-v="delivery" onclick="setLastMile('delivery')">Door +$75</button></div></div>
+      <div class="mini-total">Total <b id="mini-total">$120</b> · <span id="mini-time">Same-Day</span></div>
     </div>
 
     <div class="route-map-container">
@@ -626,6 +664,11 @@
       v3.className = 'rv-leg' + (del ? ' amzn' : '');
       v3.textContent = del ? 'Last mile: Amazon delivers to door (+$75)' : 'Last mile: receiver collects at dock';
     }
+
+    // 3c. Keep the repeated buttons in the Live Journey section in sync
+    document.querySelectorAll('.mini [data-k]').forEach(b => b.classList.toggle('on', state[b.dataset.k] === b.dataset.v));
+    const mt = document.getElementById('mini-total');
+    if (mt) { mt.textContent = `$${total}`; document.getElementById('mini-time').textContent = transitTime; }
 
     // 4. Update Story Timelines
     renderStories();
