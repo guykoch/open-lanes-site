@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amazon Open Lanes vs. Market Alternatives</title>
+<style>
+  :root {
+    --amazon-orange: #FF9900;
+    --amazon-dark: #131921;
+    --amazon-blue: #232F3E;
+    --amazon-accent: #007185;
+    --success-green: #067D62;
+    --danger-red: #B12704;
+    --bg-light: #F7F9FA;
+    --card-bg: #FFFFFF;
+    --border-color: #E3E6E6;
+    --text-primary: #0F1111;
+    --text-muted: #565959;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  body { background-color: var(--bg-light); color: var(--text-primary); padding: 24px; line-height: 1.5; }
+  
+  .container { max-width: 1200px; margin: 0 auto; }
+  
+  header { text-align: center; margin-bottom: 24px; }
+  header h1 { font-size: 26px; color: var(--amazon-dark); margin-bottom: 6px; }
+  header p { font-size: 15px; color: var(--text-muted); }
+
+  /* Controls Panel */
+  .control-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin-bottom: 24px;
+  }
+  
+  .control-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+
+  .control-group label {
+    font-weight: 700;
+    font-size: 14px;
+    display: block;
+    margin-bottom: 8px;
+    color: var(--amazon-blue);
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .toggle-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border-color);
+    background: #FFF;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    transition: all 0.2s ease;
+    text-align: center;
+  }
+
+  .toggle-btn:hover { border-color: var(--amazon-orange); background: #FFFBF4; }
+  .toggle-btn.active {
+    background: #FFF4E5;
+    border-color: var(--amazon-orange);
+    color: #8C4B00;
+    box-shadow: 0 0 0 1px var(--amazon-orange);
+  }
+
+  /* Metric Highlights */
+  .metrics-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .metric-box {
+    background: var(--card-bg);
+    border-radius: 10px;
+    border: 1px solid var(--border-color);
+    padding: 16px;
+    border-top: 4px solid var(--amazon-orange);
+  }
+
+  .metric-box.alt { border-top-color: var(--danger-red); }
+  .metric-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+  .metric-val { font-size: 24px; font-weight: 800; color: var(--amazon-dark); }
+  .metric-desc { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Animated Visual Canvas */
+  .visualization-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    overflow: hidden;
+  }
+
+  .visual-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+
+  .visual-header h2 { font-size: 18px; color: var(--amazon-dark); }
+  .transit-badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #E8F5E9;
+    color: #2E7D32;
+  }
+
+  .route-map-container {
+    position: relative;
+    padding: 30px 10px;
+    background: #FAFAFA;
+    border: 1px dashed var(--border-color);
+    border-radius: 10px;
+    margin-bottom: 24px;
+  }
+
+  /* Route Animation SVG Styling */
+  svg.pipeline { width: 100%; height: 160px; overflow: visible; }
+  .leg-line { stroke: #D5D9D9; stroke-width: 6; stroke-linecap: round; }
+  .leg-line.active-lane { stroke: var(--amazon-orange); stroke-dasharray: 8 4; animation: dashMove 1.5s linear infinite; }
+  .leg-line.active-pickup { stroke: #007185; stroke-dasharray: 6 3; animation: dashMove 1.2s linear infinite; }
+  .leg-line.active-delivery { stroke: #007185; stroke-dasharray: 6 3; animation: dashMove 1.2s linear infinite; }
+  .leg-line.self-managed { stroke: #A2A6A8; stroke-dasharray: 3 3; }
+
+  @keyframes dashMove {
+    from { stroke-dashoffset: 24; }
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Node styling */
+  .node-group text { font-size: 12px; font-weight: 600; fill: var(--text-primary); text-anchor: middle; }
+  .node-subtext { font-size: 10px; fill: var(--text-muted); font-weight: 400; text-anchor: middle; }
+
+  /* Moving Truck Icon Animation */
+  .moving-truck {
+    transition: transform 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Story Timeline Breakdown */
+  .story-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+
+  @media (max-width: 768px) { .story-grid { grid-template-columns: 1fr; } }
+
+  .story-card {
+    background: #FFF;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+  }
+
+  .story-card h3 {
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 20px;
+  }
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 6px;
+    bottom: 6px;
+    width: 2px;
+    background: #E3E6E6;
+  }
+  .timeline-step {
+    position: relative;
+    margin-bottom: 14px;
+    font-size: 13px;
+  }
+  .timeline-step:last-child { margin-bottom: 0; }
+  .timeline-step::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--amazon-orange);
+    border: 2px solid #FFF;
+    box-shadow: 0 0 0 1px var(--amazon-orange);
+  }
+  .timeline-step.alt::before { background: var(--danger-red); box-shadow: 0 0 0 1px var(--danger-red); }
+  .time-stamp { font-weight: 700; color: var(--amazon-blue); margin-right: 6px; }
+  
+  /* Comparison Table */
+  .table-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 20px;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+  th { background: #F0F2F2; padding: 12px; font-weight: 700; border-bottom: 2px solid var(--border-color); }
+  td { padding: 12px; border-bottom: 1px solid var(--border-color); }
+  tr:hover { background: #FAFAFA; }
+  .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .tag-win { background: #E7F4EE; color: var(--success-green); }
+  .tag-lose { background: #FDE8E8; color: var(--danger-red); }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>Amazon Open Lanes Route & Pricing Simulator</h1>
+    <p>Compare end-to-end routing storylines, pricing tiers, and legacy freight alternatives.</p>
+  </header>
+
+  <!-- Interactive Route Configurator -->
+  <div class="control-card">
+    <div class="control-grid">
+      <!-- Tier Selection -->
+      <div class="control-group">
+        <label>1. Booking Tier (Linehaul Transit)</label>
+        <div class="btn-group">
+          <button class="toggle-btn active" id="btn-scheduled" onclick="setTier('scheduled')">
+            Scheduled ($120)<br><small>Guaranteed Same-Day Spot</small>
+          </button>
+          <button class="toggle-btn" id="btn-flexible" onclick="setTier('flexible')">
+            Flexible ($90)<br><small>Fills Next Truck (&lt;24h)</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- First Mile Selection -->
+      <div class="control-group">
+        <label>2. Origin / First Mile (New York)</label>
+        <div class="btn-group">
+          <button class="toggle-btn active" id="btn-dropoff" onclick="setFirstMile('dropoff')">
+            Self Drop-off ($0)<br><small>Shipper brings to dock</small>
+          </button>
+          <button class="toggle-btn" id="btn-pickup" onclick="setFirstMile('pickup')">
+            Amazon Pickup (+$75)<br><small>Local LTL truck collects</small>
+          </button>
+        </div>
+      </div>
+
+      <!-- Last Mile Selection -->
+      <div class="control-group">
+        <label>3. Destination / Last Mile (Philadelphia)</label>
+        <div class="btn-group">
+          <button class="toggle-btn active" id="btn-selfcollect" onclick="setLastMile('collect')">
+            Receiver Pickup ($0)<br><small>Receiver brings vehicle</small>
+          </button>
+          <button class="toggle-btn" id="btn-delivery" onclick="setLastMile('delivery')">
+            Door Delivery (+$75)<br><small>Amazon brings to store door</small>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Metrics Highlights -->
+  <div class="metrics-summary">
+    <div class="metric-box">
+      <div class="metric-title">Total Open Lanes Price</div>
+      <div class="metric-val" id="metric-total-price">$120</div>
+      <div class="metric-desc" id="metric-price-breakdown">$120 linehaul + $0 pickup + $0 delivery</div>
+    </div>
+    <div class="metric-box">
+      <div class="metric-title">Estimated Transit Speed</div>
+      <div class="metric-val" id="metric-transit-time">Same-Day (5h)</div>
+      <div class="metric-desc" id="metric-transit-desc">Dock-to-dock express via I-95 corridor</div>
+    </div>
+    <div class="metric-box alt">
+      <div class="metric-title">Standard LTL Alternative</div>
+      <div class="metric-val">$180 – $260</div>
+      <div class="metric-desc">3–4 business days, 4–6 cross-dock touches</div>
+    </div>
+    <div class="metric-box alt">
+      <div class="metric-title">Hot Shot / Rush Alternative</div>
+      <div class="metric-val">$500 – $900</div>
+      <div class="metric-desc">Dedicated hot-shot sprinter van for emergency speed</div>
+    </div>
+  </div>
+
+  <!-- Animated Pipeline Diagram -->
+  <div class="visualization-card">
+    <div class="visual-header">
+      <h2>Live Journey Simulation: New York &rarr; Philadelphia Corridor</h2>
+      <div class="transit-badge" id="live-transit-badge">Same-Day Direct Delivery</div>
+    </div>
+
+    <div class="route-map-container">
+      <svg class="pipeline" viewBox="0 0 1000 140" id="routeSvg">
+        <!-- Connecting Lines -->
+        <!-- Leg 1: Shipper Door to NY Dock -->
+        <line x1="120" y1="60" x2="350" y2="60" class="leg-line self-managed" id="line-leg1" />
+        <!-- Leg 2: Linehaul NY to Philly -->
+        <line x1="350" y1="60" x2="650" y2="60" class="leg-line active-lane" id="line-leg2" />
+        <!-- Leg 3: Philly Dock to Receiver Door -->
+        <line x1="650" y1="60" x2="880" y2="60" class="leg-line self-managed" id="line-leg3" />
+
+        <!-- Node 1: Shipper Facility (NYC) -->
+        <g class="node-group" transform="translate(120,60)">
+          <circle r="22" fill="#FFF" stroke="#232F3E" stroke-width="3" />
+          <text y="5" font-size="14">🏢</text>
+          <text y="40">Shipper Facility</text>
+          <text y="54" class="node-subtext">Queens / Brooklyn, NY</text>
+        </g>
+
+        <!-- Node 2: Amazon Origin Dock (NY/NJ) -->
+        <g class="node-group" transform="translate(350,60)">
+          <circle r="26" fill="#FFF" stroke="#FF9900" stroke-width="4" />
+          <text y="6" font-size="16">📦</text>
+          <text y="44" font-weight="700">Amazon Dock (EWR)</text>
+          <text y="58" class="node-subtext">Direct Gateway Station</text>
+        </g>
+
+        <!-- Node 3: Amazon Destination Dock (PHL) -->
+        <g class="node-group" transform="translate(650,60)">
+          <circle r="26" fill="#FFF" stroke="#FF9900" stroke-width="4" />
+          <text y="6" font-size="16">🏬</text>
+          <text y="44" font-weight="700">Amazon Dock (PHL)</text>
+          <text y="58" class="node-subtext">Destination Inbound Hub</text>
+        </g>
+
+        <!-- Node 4: Receiver Door (Philly Store/Warehouse) -->
+        <g class="node-group" transform="translate(880,60)">
+          <circle r="22" fill="#FFF" stroke="#232F3E" stroke-width="3" />
+          <text y="5" font-size="14">🏪</text>
+          <text y="40">Receiver Door</text>
+          <text y="54" class="node-subtext">Downtown Philadelphia</text>
+        </g>
+
+        <!-- Moving Cargo / Truck Object -->
+        <g id="animatedTruck" transform="translate(350, 24)">
+          <rect width="44" height="24" rx="4" fill="#232F3E" />
+          <text x="22" y="16" fill="#FFF" font-size="10" font-weight="700" text-anchor="middle">AMZN</text>
+          <polygon points="44,3 52,12 52,24 44,24" fill="#FF9900" />
+        </g>
+      </svg>
+    </div>
+
+    <!-- Comparative Story Timelines -->
+    <div class="story-grid">
+      <!-- Selected Open Lanes Narrative -->
+      <div class="story-card">
+        <h3><span style="color:var(--amazon-orange);">●</span> Selected Open Lanes Execution Story</h3>
+        <div class="timeline" id="open-lanes-story">
+          <!-- Dynamic items populated via JS -->
+        </div>
+      </div>
+
+      <!-- Legacy Alternative Narrative -->
+      <div class="story-card">
+        <h3><span style="color:var(--danger-red);">●</span> What Happens Today (Legacy Alternatives)</h3>
+        <div class="timeline" id="alt-freight-story">
+          <!-- Dynamic items populated via JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comprehensive Combinations Matrix -->
+  <div class="table-card">
+    <h2 style="font-size:17px; margin-bottom:12px; color:var(--amazon-dark);">All Possible Open Lanes Route Combinations vs. Market</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Combination & Operational Flow</th>
+          <th>Open Lanes Price</th>
+          <th>Transit Time</th>
+          <th>Touches</th>
+          <th>Best Fit Use Case</th>
+          <th>Legacy Benchmark (LTL / Hot Shot)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Site-to-Site (Flexible)</strong><br><small>Drop at dock &rarr; Linehaul &rarr; Pickup at dock</small></td>
+          <td><strong style="color:var(--success-green);">$90</strong> all-in</td>
+          <td>Within 24 Hours</td>
+          <td>2 (Forklift on/off)</td>
+          <td>Maximum cost savings; non-emergency replenishment</td>
+          <td>Standard LTL ($180–$250, 3–4 days). <span class="tag tag-win">50% Cheaper</span></td>
+        </tr>
+        <tr>
+          <td><strong>Site-to-Site (Scheduled)</strong><br><small>Drop at dock &rarr; Set truck &rarr; Pickup at dock</small></td>
+          <td><strong style="color:var(--success-green);">$120</strong> all-in</td>
+          <td>Same-Day (4–6h)</td>
+          <td>2 (Forklift on/off)</td>
+          <td>Urgent inter-branch transfer with own fleet availability</td>
+          <td>Hot Shot rush van ($500+). <span class="tag tag-win">75% Cheaper</span></td>
+        </tr>
+        <tr>
+          <td><strong>Hybrid: Self-Drop + Door Delivery (Scheduled)</strong><br><small>Drop at dock &rarr; Set truck &rarr; Amazon delivers to door</small></td>
+          <td><strong>$195</strong> ($120 + $75)</td>
+          <td>Same-Day / Overnight</td>
+          <td>4 touches</td>
+          <td>Shipper has NY truck; Philly buyer has no vehicle</td>
+          <td>Standard LTL ($200+, 3–4 days). <span class="tag tag-win">Same Price, 3x Faster</span></td>
+        </tr>
+        <tr>
+          <td><strong>Full Door-to-Door (Flexible)</strong><br><small>Amazon picks up &rarr; Linehaul &rarr; Amazon delivers</small></td>
+          <td><strong>$240</strong> ($90 + $150)</td>
+          <td>24–36 Hours</td>
+          <td>6 touches</td>
+          <td>Convenience; business has zero logistics fleet</td>
+          <td>Standard LTL ($180–$260, 3–4 days). <span class="tag tag-win">Parity price, faster</span></td>
+        </tr>
+        <tr>
+          <td><strong>Full Door-to-Door (Scheduled)</strong><br><small>Amazon picks up &rarr; Priority linehaul &rarr; Amazon delivers</small></td>
+          <td><strong>$270</strong> ($120 + $150)</td>
+          <td>Next-Day A.M.</td>
+          <td>6 touches</td>
+          <td>Urgent B2B customer promise ("Prime" speed)</td>
+          <td>Hot-shot dedicated sprinter ($600–$800). <span class="tag tag-win">55% Cheaper</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let state = {
+    tier: 'scheduled', // 'scheduled' ($120) or 'flexible' ($90)
+    firstMile: 'dropoff', // 'dropoff' ($0) or 'pickup' ($75)
+    lastMile: 'collect' // 'collect' ($0) or 'delivery' ($75)
+  };
+
+  function setTier(t) {
+    state.tier = t;
+    document.getElementById('btn-scheduled').classList.toggle('active', t === 'scheduled');
+    document.getElementById('btn-flexible').classList.toggle('active', t === 'flexible');
+    updateAll();
+  }
+
+  function setFirstMile(fm) {
+    state.firstMile = fm;
+    document.getElementById('btn-dropoff').classList.toggle('active', fm === 'dropoff');
+    document.getElementById('btn-pickup').classList.toggle('active', fm === 'pickup');
+    updateAll();
+  }
+
+  function setLastMile(lm) {
+    state.lastMile = lm;
+    document.getElementById('btn-selfcollect').classList.toggle('active', lm === 'collect');
+    document.getElementById('btn-delivery').classList.toggle('active', lm === 'delivery');
+    updateAll();
+  }
+
+  function updateAll() {
+    // 1. Calculate price
+    const basePrice = state.tier === 'scheduled' ? 120 : 90;
+    const pickupCost = state.firstMile === 'pickup' ? 75 : 0;
+    const deliveryCost = state.lastMile === 'delivery' ? 75 : 0;
+    const total = basePrice + pickupCost + deliveryCost;
+
+    document.getElementById('metric-total-price').innerText = `$${total}`;
+    document.getElementById('metric-price-breakdown').innerText = 
+      `$${basePrice} linehaul + $${pickupCost} pickup + $${deliveryCost} delivery`;
+
+    // 2. Calculate transit & badge
+    let transitTime = "";
+    let badgeText = "";
+    if (state.tier === 'scheduled') {
+      if (state.firstMile === 'dropoff' && state.lastMile === 'collect') {
+        transitTime = "Same-Day (5 Hours)";
+        badgeText = "Fastest: Pure Dock-to-Dock Direct";
+      } else if (state.firstMile === 'pickup' || state.lastMile === 'delivery') {
+        transitTime = "Same-Day / Next-Day AM (12–18h)";
+        badgeText = "Accelerated Regional Delivery";
+      }
+    } else {
+      transitTime = "Within 24 Hours";
+      badgeText = "Flexible Economy Fill";
+    }
+    document.getElementById('metric-transit-time').innerText = transitTime;
+    document.getElementById('live-transit-badge').innerText = badgeText;
+
+    // 3. Update Visual pipeline SVG
+    const leg1 = document.getElementById('line-leg1');
+    const leg3 = document.getElementById('line-leg3');
+
+    if (state.firstMile === 'pickup') {
+      leg1.className.baseVal = "leg-line active-pickup";
+    } else {
+      leg1.className.baseVal = "leg-line self-managed";
+    }
+
+    if (state.lastMile === 'delivery') {
+      leg3.className.baseVal = "leg-line active-delivery";
+    } else {
+      leg3.className.baseVal = "leg-line self-managed";
+    }
+
+    // 4. Update Story Timelines
+    renderStories();
+  }
+
+  function renderStories() {
+    const storyDiv = document.getElementById('open-lanes-story');
+    const altDiv = document.getElementById('alt-freight-story');
+
+    let openStory = "";
+    let altStory = "";
+
+    // Open Lanes Story steps
+    if (state.firstMile === 'pickup') {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">08:30 AM:</span>
+          <strong>Local Amazon Pickup (+$75):</strong> A local Amazon LTL route vehicle collects the pallet directly from your loading bay in Queens.
+        </div>
+        <div class="timeline-step">
+          <span class="time-stamp">10:45 AM:</span>
+          <strong>Gateway Inbound:</strong> Truck arrives at Amazon EWR sorting hub; pallet is weighed, scanned, and placed straight into staging.
+        </div>
+      `;
+    } else {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">10:30 AM:</span>
+          <strong>Self Drop-Off ($0):</strong> Shipper transports pallet via company van directly to designated Amazon facility gate in NY/NJ.
+        </div>
+      `;
+    }
+
+    if (state.tier === 'scheduled') {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">11:30 AM:</span>
+          <strong>Scheduled Direct Loading ($120):</strong> Pallet loaded last into tail of scheduled linehaul trailer driving to Philadelphia.
+        </div>
+        <div class="timeline-step">
+          <span class="time-stamp">01:45 PM:</span>
+          <strong>Non-Stop Linehaul Transit:</strong> Truck cruises 95 miles south down the I-95 corridor (zero sorting hub detours).
+        </div>
+        <div class="timeline-step">
+          <span class="time-stamp">02:15 PM:</span>
+          <strong>First-Out Unload at PHL Hub:</strong> Doors open at Philly facility; pallet unloaded in minutes straight to front staging.
+        </div>
+      `;
+    } else {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">01:00 PM:</span>
+          <strong>Flexible Staging Queue ($90):</strong> Algorithm identifies trailer with 12 spare pallet spots departing at 3:30 PM and books space.
+        </div>
+        <div class="timeline-step">
+          <span class="time-stamp">06:00 PM:</span>
+          <strong>Evening Linehaul Transit:</strong> Pallet rides on regular scheduled internal replenishment run to Philadelphia.
+        </div>
+      `;
+    }
+
+    if (state.lastMile === 'delivery') {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">04:30 PM:</span>
+          <strong>Door Delivery (+$75):</strong> Local delivery truck dispatches and delivers pallet right onto receiver's sidewalk or store door.
+        </div>
+      `;
+    } else {
+      openStory += `
+        <div class="timeline-step">
+          <span class="time-stamp">03:00 PM:</span>
+          <strong>Receiver Dock Pickup ($0):</strong> Receiver receives automated notification and pulls vehicle up to Amazon PHL dock for free pickup.
+        </div>
+      `;
+    }
+
+    // Alternative Story
+    if (state.tier === 'scheduled' && state.firstMile === 'dropoff' && state.lastMile === 'collect') {
+      altStory = `
+        <div class="timeline-step alt">
+          <span class="time-stamp">Day 1, 09:00 AM:</span>
+          <strong>Legacy Hot Shot Call:</strong> Shipper needs it in Philly today. Calls local courier broker; quoted <strong>$650</strong> for dedicated van.
+        </div>
+        <div class="timeline-step alt">
+          <span class="time-stamp">Day 1, 01:30 PM:</span>
+          <strong>Same-Day Result:</strong> Hot shot arrives by 4:00 PM, but costs <strong>5x more</strong> than Open Lanes Scheduled ($120).
+        </div>
+      `;
+    } else {
+      altStory = `
+        <div class="timeline-step alt">
+          <span class="time-stamp">Day 1:</span>
+          <strong>Pickup & Hub Transfer:</strong> Standard LTL carrier collects; pallet sits overnight in central Brooklyn cross-dock hub.
+        </div>
+        <div class="timeline-step alt">
+          <span class="time-stamp">Day 2–3:</span>
+          <strong>Multi-Hub Sorting (4–6 Touches):</strong> Forklifts move pallet between intermediate trailers; high risk of puncture/crushing. Base rate: $160 + $35 Fuel Surcharge + $30 Liftgate = <strong>$225</strong>.
+        </div>
+        <div class="timeline-step alt">
+          <span class="time-stamp">Day 4:</span>
+          <strong>Final Delivery:</strong> Consignee finally receives pallet 72–96 hours later.
+        </div>
+      `;
+    }
+
+    storyDiv.innerHTML = openStory;
+    altDiv.innerHTML = altStory;
+  }
+
+  // Initial trigger
+  updateAll();
+</script>
+
+</body>
+</html>

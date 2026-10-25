@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open Lanes Q&amp;A Practice</title>
+<style>
+  :root{
+    --navy:#232F3E; --orange:#FF9900; --cream:#FFF4E0; --bg:#F5F6F8; --card:#FFFFFF;
+    --ink:#1F2933; --muted:#5F6B7A; --line:#DDE1E6; --chip:#EEF0F3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --bg:#14181E; --card:#1E242C; --ink:#E8ECF0; --muted:#9AA5B1; --line:#2E3640; --chip:#28303A; --cream:#2E2618; --navy:#E8ECF0; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Calibri,Arial,sans-serif}
+  .wrap{max-width:760px;margin:0 auto;padding:24px 16px 48px}
+  header h1{margin:0;font-size:22px;color:var(--navy)}
+  header p{margin:4px 0 16px;color:var(--muted);font-size:14px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chip{border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer}
+  .chip.on{background:var(--orange);border-color:var(--orange);color:#232F3E;font-weight:600}
+  .bar{height:6px;background:var(--line);border-radius:3px;overflow:hidden;margin-bottom:8px}
+  .bar i{display:block;height:100%;background:var(--orange);width:0;transition:width .2s}
+  .meta{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);margin-bottom:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:24px;min-height:300px;display:flex;flex-direction:column}
+  .cat{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--orange)}
+  .q{font-size:21px;font-weight:700;margin:8px 0 18px;color:var(--navy)}
+  .ans{display:none;background:var(--cream);border-left:4px solid var(--orange);border-radius:8px;padding:14px 16px;margin-bottom:16px}
+  .ans.show{display:block}
+  .ans ul{margin:6px 0 0;padding-left:20px}
+  .ans li{margin:3px 0}
+  .tip{font-size:13px;color:var(--muted);margin-top:8px}
+  .spacer{flex:1}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  button.b{border:0;border-radius:10px;padding:11px 18px;font-size:15px;font-weight:600;cursor:pointer}
+  .reveal{background:var(--orange);color:#232F3E;flex:1;min-width:160px}
+  .nav{background:var(--chip);color:var(--ink);border:1px solid var(--line)!important}
+  .nav:disabled{opacity:.4;cursor:default}
+  .tools{display:flex;gap:10px;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .tools button{background:none;border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 10px;cursor:pointer;font-size:13px}
+  select{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px;font-size:13px;max-width:100%}
+  kbd{background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:0 5px;font-size:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Amazon Open Lanes: Q&amp;A Practice</h1>
+    <p>50 questions Amazon judges are likely to ask. Try to answer out loud first, then reveal.</p>
+  </header>
+
+  <div class="chips" id="chips"></div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="meta"><span id="count"></span><span id="seen"></span></div>
+
+  <div class="card">
+    <div class="cat" id="cat"></div>
+    <div class="q" id="q"></div>
+    <div class="ans" id="ans"></div>
+    <div class="spacer"></div>
+    <div class="btns">
+      <button class="b nav" id="prev">← Previous</button>
+      <button class="b reveal" id="reveal">Show answer</button>
+      <button class="b nav" id="next">Next →</button>
+    </div>
+  </div>
+
+  <div class="tools">
+    <span><kbd>←</kbd> <kbd>→</kbd> move &nbsp; <kbd>Space</kbd> show/hide</span>
+    <span>
+      <select id="jump" aria-label="Jump to question"></select>
+      <button id="shuffle">Shuffle</button>
+    </span>
+  </div>
+</div>
+
+<script>
+const QA = [
+// ---------- The idea ----------
+["The idea","Explain Open Lanes in 30 seconds.",
+ "Amazon trucks already drive between Amazon sites every day, often with empty space. Open Lanes sells that space to businesses. They drop pallets at the nearest Amazon site, and the pallets ride direct to the Amazon site in the destination city, usually the same day.",
+ ["Two ways to book: Scheduled (~$120) or Flexible (~$90)","Optional door pickup or delivery for ~$75, plus optional destination delivery for an additional ~$75."]],
+["The idea","Who is the target customer?",
+ "Businesses that ship 1–6 pallets between nearby cities and need them there fast: food and drink brands, wholesalers, local manufacturers, retailers restocking stores. Businesses only, not private people."],
+["The idea","Why should customers care? What problem do you solve?",
+ "Shipping a few pallets today is slow and messy: LTL takes 3–4 days, the pallet is handled 4–6 times, and the final bill often has extra fees. Open Lanes is same day, handled twice, and one all-in price."],
+["The idea","Isn't this just Amazon's LTL service, which launched in June 2026?",
+ "No. Amazon LTL picks up at the door, sorts at hubs and takes 3–4 days. Open Lanes skips the hubs: one truck, one direct trip, same day. It uses empty space on trucks that are already driving, so it costs Amazon only ~$25 a pallet.",
+ ["Different job: LTL = ship almost anywhere; Open Lanes = ship fast on busy routes"]],
+["The idea","Why should the customer drop off instead of Amazon picking up?",
+ "Drop-off is what makes it fast and cheap. A pickup truck adds cost, hours and stops. Most pallet shippers have their own van or truck, and in dense metro areas an Amazon site is usually close. If they can't drop off, they pay ~$75 for pickup."],
+["The idea","What's the difference between Scheduled and Flexible?",
+ "Scheduled: pick a set truck and time, spot is held, best when pallets must arrive today (~$120). Flexible: drop off anytime, Amazon puts the pallets on the next truck with space within 24 hours (~$90).",
+ ["Flexible lets Amazon fill trucks that would leave half empty"]],
+["The idea","Why two prices? Doesn't that complicate things?",
+ "It's like airline seats. Customers who need speed pay more. Customers who can wait pay less and let Amazon choose the truck. Together they fill more space than one price could. The customer only makes one choice."],
+
+// ---------- Market ----------
+["Market","How big is the opportunity?",
+ "US businesses spent $52.8B on LTL in 2024 (Journal of Commerce), and prices rose 3%. Every 1% of that market is ~$528M a year. We don't need all of it, just short, urgent trips on busy routes."],
+["Market","How do you know there's empty space on trucks?",
+ "20–35% of US truck miles are driven empty (Uber Freight, 2023). 43% of truckloads moved partly empty in 2023, with ~29 feet of trailer unused (Flock Freight, 2024). A 53-ft trailer holds 26 pallets, so 29 ft is ~14 free pallet spots."],
+["Market","But do Amazon's own trucks have empty space? Those stats are industry-wide.",
+ "Fair point. We don't have Amazon's internal data. That's exactly why Phase 1 (Nov 2026 – Jan 2027) measures spare space using Amazon's trailer sensors before any money is spent on the pilot. The check to move on: 5+ free pallet spots on an average trip."],
+["Market","Why now?",
+ "In 2026 Amazon opened its shipping network to every business: Supply Chain Services in May, LTL in June. Outside businesses are already coming to Amazon for freight. Open Lanes gives them a faster option."],
+["Market","Is there real demand for same-day pallet shipping?",
+ "Urgent restocks happen all the time: a store runs out, a big order comes in. Today those shippers wait 3–4 days or pay for a costly rush truck. We'll confirm demand by interviewing 50 customers in Phase 1 and through repeat bookings in the pilot (target: 40%+ book again in 60 days)."],
+["Market","Why start with New York to Washington, D.C.?",
+ "It's one of the densest freight corridors in the US: many Amazon sites, many trucks a day, and many businesses close to an Amazon site. That gives the pilot the best chance to find space and customers fast."],
+
+// ---------- Competition ----------
+["Competition","Who else does freight sharing today?",
+ "Flock Freight (shared truckload), Uber Freight (freight matching), Walmart (combines its own suppliers' shipments), Lanehub (software to sell empty return trips). Convoy tried and shut down in 2023.",
+ ["None sells space on its own scheduled trucks, direct and same day, to any business"]],
+["Competition","Isn't this just Flock Freight?",
+ "No. Flock is a middleman that owns no trucks. It must find a truck for every load, and trips have two pickups and two drop-offs, so they're slower. Amazon's trucks are already driving, so the supply is free and the trip is direct."],
+["Competition","Convoy was valued at $3.8B and failed. Why would this work?",
+ "Convoy had to find and pay trucks for every load, so when freight demand fell, its model broke. Open Lanes sells space on trucks Amazon runs anyway. If demand drops, Amazon loses almost nothing: the trucks still drive for Amazon's own freight."],
+["Competition","Why doesn't Walmart or UPS do this already?",
+ "Walmart uses its network for its own suppliers. Parcel carriers like UPS and FedEx run hub networks. Few companies have Amazon's mix: a huge scheduled fleet, trailer sensors, an open freight booking site, and tens of thousands of freight customers."],
+["Competition","How do LTL carriers react? Can they copy you?",
+ "They can cut prices, but they can't easily go direct without hubs. Their whole network is built on sorting. Freight middlemen can't copy it either, because they don't own a truck schedule."],
+
+// ---------- Money ----------
+["Money","How much revenue will this make?",
+ "~$16.5M a year per region. ~$8M in 2027 (pilot, ~6 months live), ~$66M in 2028 (4 regions), ~$250M in 2029 (15 regions). All our estimates."],
+["Money","Walk me through the $16.5M.",
+ "100 trips a day with space × 5 pallets per trip × $110 average price × 300 working days ≈ $16.5M a year for one region."],
+["Money","Where does $110 average price come from?",
+ "Scheduled ~$120 and Flexible ~$90, assuming 2 of every 3 pallets are Scheduled: (2 × 120 + 90) ÷ 3 = $110. For comparison, regional LTL is $100–$250 per pallet, and one published NYC→NJ rate is $148."],
+["Money","Is $250M realistic? Does it cover the whole US?",
+ "No, it's 15 major metro regions, not the whole country. It's ~0.5% of the LTL market. Honestly, it assumes every region is like NY–DC, which is probably the busiest, so it's closer to an optimistic case. A safer range is ~$150–250M."],
+["Money","Why only 5 pallets per trip if there are ~14 free spots?",
+ "To be conservative. We only sell ~70% of forecast space to protect Amazon freight, and early demand won't fill everything. 5 is about 35% of free spots."],
+["Money","How much does Amazon keep per pallet?",
+ "~$85 of ~$110 (about 77%). The truck, driver and fuel are already paid for. The new cost is ~$25: loading and unloading, customer service, and money set aside for damage claims."],
+["Money","Is $25 per pallet realistic?",
+ "It's our estimate and the first thing we'd test in the pilot. Even if it doubled to $50, Amazon would still keep ~$60 a pallet, far better than truckload companies, which kept just 0.4% of revenue as profit in 2025 (ATRI)."],
+["Money","What will this cost Amazon up front?",
+ "~$2.5M to get through the pilot: a team of ~10 (~$2M a year) and 10 drop-off areas (~$50K each for scanners, scales, signs, holding space)."],
+["Money","When does it pay back?",
+ "Inside the pilot. 500 pallets a day × ~150 days × $85 ≈ $6.4M kept, more than twice the ~$2.5M cost. Even at half the volume, it roughly breaks even."],
+["Money","Does the $75 pickup fee make money?",
+ "It's set to cover its own cost, not to make profit, so we don't count it in revenue. Its job is to let Amazon serve almost any business without losing money on pickups. We review pickup costs monthly and adjust the fee."],
+["Money","What's the value beyond direct revenue?",
+ ["Brings small businesses to Amazon Supply Chain Services (storage, order shipping, parcel)","Earns more on every mile Amazon already drives","Wins urgent customers who'd otherwise go elsewhere","Fewer empty miles helps Amazon's climate goals"]],
+
+// ---------- Operations ----------
+["Operations","How do you know how much space is on each truck?",
+ "Each night a model combines planned loads with trailer sensor and camera data to estimate free pallet spots per trip for the next days. Amazon's fleet already has cargo cameras and door sensors."],
+["Operations","What stops Open Lanes from delaying Amazon's own packages?",
+ ["Amazon freight always goes first","We only sell ~70% of forecast space","Open Lanes pallets are loaded last, at the back, so they come off first","Separate drop-off windows","Any site manager can stop sales for the day"]],
+["Operations","What happens when a booked spot disappears?",
+ "We move the pallets on the next truck on that route or by Amazon LTL at no extra cost, and refund the difference if they arrive late."],
+["Operations","Where do Flexible pallets wait?",
+ "In a small holding area at the site, for up to 24 hours. We cap Flexible bookings per site each day, based on the space forecast, so pallets don't pile up."],
+["Operations","Who does pickup and delivery?",
+ "Amazon's local LTL trucks, which already make pickups in these cities. The customer's fee covers the cost."],
+["Operations","Many Amazon trucks are run by Amazon Relay partners. Will they agree?",
+ "Before the pilot we confirm their contracts allow extra pallets. If needed, we share part of each pallet's revenue with them. If not possible, the pilot uses Amazon-run trucks only."],
+["Operations","What can't be shipped?",
+ "In the pilot: no dangerous goods, no refrigerated goods. Same size limits as Amazon LTL: 1–6 pallets, 150–15,000 lbs per booking. Every pallet is scanned and weighed at the gate."],
+["Operations","How do you handle security and safety of unknown shippers?",
+ "Only approved Amazon Freight business accounts can book. Every pallet is labeled, scanned and weighed. Pallets ride with the same GPS tracking, cargo cameras and door sensors as Amazon's own goods."],
+["Operations","What if a pallet is damaged?",
+ "The customer files a claim online under standard freight insurance rules. The $25 per-pallet cost includes money set aside for claims. Damage should be lower than LTL because pallets are handled twice, not 4–6 times. Target: below 0.5%."],
+["Operations","What does the pilot team look like?",
+ "About 10 people: a product manager, 4–5 engineers (booking feature on Amazon Freight + space forecasting), an operations lead, 2 site leads, and a sales lead."],
+
+// ---------- Risks ----------
+["Risks","Won't this take customers away from Amazon LTL?",
+ "A little, and it's acceptable. Open Lanes only sells space that would drive empty, with a minimum price on each route. Most Open Lanes customers need speed, which LTL can't give. And each service refers customers to the other, so the sale stays with Amazon."],
+["Risks","What about the holiday season, when Amazon trucks are full?",
+ "Space shrinks in Nov–Dec. We pause sales or raise prices in the busiest weeks and offer LTL instead. The 300 working days in our estimate already leave room for these pauses."],
+["Risks","What if not enough customers sign up?",
+ "Start with existing Amazon Freight customers (tens of thousands) on the busiest routes only. Amazon's risk is small: the trucks drive anyway, and the pilot costs ~$2.5M."],
+["Risks","What's your biggest assumption, and how do you test it?",
+ "That Amazon's trucks have enough spare space on busy routes (we assume 100 trips a day with space, 5 pallets each). Phase 1 measures it with sensor data before the pilot. If an average trip has fewer than 5 free spots, we stop."],
+["Risks","What could make this fail?",
+ ["Not enough real spare space on Amazon's routes","Operations slowing down Amazon's own freight","Customers not willing to drop off","Pickup costing more than the fee"],
+ ["Each has a check or fix in the plan"]],
+["Risks","Could drivers or labor groups push back?",
+ "Possibly, since it's extra loading work at sites. The extra work is small (a few pallets loaded last). We'd involve site leads early, staff the drop-off areas properly, and confirm partner contracts before launch."],
+
+// ---------- Plan ----------
+["Plan","What's the roadmap?",
+ ["Phase 1 (Nov 2026 – Jan 2027): prove the space with sensor data, pick 10 sites, talk to 50 customers","Phase 2 (Apr – Sep 2027): pilot NY to D.C. with both booking types and paid pickup","Phase 3 (Oct 2027 – 2028): 4 regions","Phase 4 (2029): 15 regions, bundle into Supply Chain Services"]],
+["Plan","How will you know the pilot worked?",
+ "95%+ on time, damage below 0.5%, 5+ pallets sold per trip, $80+ kept per pallet, and zero delays to Amazon freight. We move to the next phase only when these are met."],
+["Plan","What alternatives did you consider?",
+ ["Do nothing: space keeps driving empty","Sell space in bulk to brokers: low prices, Amazon loses the customer","Feed space into LTL only: still hubs, 3–4 days","Buy a startup: expensive, and its trucks aren't Amazon's"],
+ ["Building it inside Amazon Freight is cheapest and fastest"]],
+["Plan","What exactly are you asking Amazon for?",
+ "Approval of a six-month pilot starting April 2027, a team of ~10, trailer-fill data for the Northeast, and 10 pilot sites, with a decision by December 2026."],
+["Plan","If you had to cut the pilot budget in half, what would you drop?",
+ "Start with 5 sites instead of 10 on the busiest stretch (e.g., Philadelphia to Baltimore) and launch drop-off only, adding paid pickup a few months later. The core test, whether there's enough space and demand, stays the same."],
+];
+
+const cats = ["All", ...new Set(QA.map(x => x[0]))];
+let filter = "All", list = [], i = 0, seen = new Set();
+
+const $ = id => document.getElementById(id);
+function buildList(){ list = QA.map((x,k)=>k).filter(k => filter==="All" || QA[k][0]===filter); i = 0; buildJump(); render(); }
+function buildJump(){
+  $("jump").innerHTML = list.map((k,n)=>`<option value="${n}">${n+1}. ${QA[k][1].slice(0,60)}${QA[k][1].length>60?"…":""}</option>`).join("");
+}
+function fmt(a){ return Array.isArray(a) ? "<ul>"+a.map(t=>`<li>${t}</li>`).join("")+"</ul>" : `<div>${a}</div>`; }
+function render(){
+  const [c,q,a,tip] = QA[list[i]];
+  $("cat").textContent = c;
+  $("q").textContent = q;
+  $("ans").innerHTML = fmt(a) + (tip ? `<div class="tip">${tip.map(t=>"• "+t).join("<br>")}</div>` : "");
+  $("ans").classList.remove("show");
+  $("reveal").textContent = "Show answer";
+  $("count").textContent = `Question ${i+1} of ${list.length}`;
+  $("seen").textContent = `${seen.size} of ${QA.length} answers viewed`;
+  $("prog").style.width = ((i+1)/list.length*100)+"%";
+  $("prev").disabled = i===0; $("next").disabled = i===list.length-1;
+  $("jump").value = i;
+}
+function toggle(){
+  const s = $("ans").classList.toggle("show");
+  $("reveal").textContent = s ? "Hide answer" : "Show answer";
+  if (s){ seen.add(list[i]); $("seen").textContent = `${seen.size} of ${QA.length} answers viewed`; }
+}
+$("reveal").onclick = toggle;
+$("prev").onclick = () => { if(i>0){i--;render();} };
+$("next").onclick = () => { if(i<list.length-1){i++;render();} };
+$("jump").onchange = e => { i = +e.target.value; render(); };
+$("shuffle").onclick = () => { for(let a=list.length-1;a>0;a--){const b=Math.floor(Math.random()*(a+1));[list[a],list[b]]=[list[b],list[a]];} i=0; buildJump(); render(); };
+document.addEventListener("keydown", e => {
+  if (e.target.tagName==="SELECT") return;
+  if (e.key==="ArrowRight") $("next").click();
+  else if (e.key==="ArrowLeft") $("prev").click();
+  else if (e.key===" "){ e.preventDefault(); toggle(); }
+});
+$("chips").innerHTML = cats.map(c=>`<button class="chip${c==="All"?" on":""}" data-c="${c}">${c}${c==="All"?` (${QA.length})`:""}</button>`).join("");
+$("chips").onclick = e => {
+  const b = e.target.closest(".chip"); if(!b) return;
+  document.querySelectorAll(".chip").forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  filter = b.dataset.c; buildList();
+};
+buildList();
+</script>
+</body>
+</html>
