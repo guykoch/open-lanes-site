@@ -10,7 +10,7 @@
 <style>
   :root{ --navy:#232F3E; --navy2:#131921; --orange:#FF9900; --bg:#F5F6F8; --muted:#5F6B7A; --card:#FFFFFF; --ink:#1F2933; --line:#DDE1E6; }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{margin:0;height:100%;background:var(--navy2);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink)}
+  html,body{margin:0;height:100%;overflow-x:hidden;background:var(--navy2);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--ink)}
   button{font:inherit}
 
   /* ---------- Start screen ---------- */
@@ -54,7 +54,7 @@
   .tabs{display:flex;gap:8px}
   .tab{border:0;border-radius:10px;padding:12px 20px;font-size:17px;font-weight:700;cursor:pointer;background:rgba(255,255,255,.08);color:#D5DCE4;min-height:48px}
   .tab[aria-selected="true"]{background:var(--orange);color:var(--navy)}
-  main{flex:1;position:relative;min-height:0}
+  main{flex:1;position:relative;min-height:0;overflow:hidden}
   iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);display:none}
   iframe.on{display:block}
   @media (max-width:600px){

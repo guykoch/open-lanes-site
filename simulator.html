@@ -273,6 +273,50 @@
     table{min-width:760px;font-size:13px}
     th,td{padding:10px}
   }
+/* mobile-patch-2 */
+  .route-v{display:none}
+  @media (max-width:600px){
+    html,body{overflow-x:hidden;max-width:100%;touch-action:pan-y pinch-zoom}
+    /* Booking controls: one-line buttons */
+    .control-card{padding:12px}
+    .control-grid{gap:10px}
+    .control-group label{font-size:13px;margin-bottom:5px}
+    .toggle-btn{min-height:42px;padding:8px 6px;font-size:14px;line-height:1.2}
+    .toggle-btn br,.toggle-btn small{display:none}
+    /* Route: vertical, full-size version */
+    .visual-header::after,.table-card h2::after{content:none}
+    .route-map-container{overflow:visible;padding:16px 14px}
+    svg.pipeline{display:none}
+    .route-v{display:block}
+    .rv-node{display:flex;align-items:center;gap:12px}
+    .rv-dot{flex:none;width:44px;height:44px;border-radius:50%;background:#FFF;border:3px solid var(--amazon-blue);display:grid;place-items:center;font-size:22px}
+    .rv-node.amz .rv-dot{border:4px solid var(--amazon-orange)}
+    .rv-node b{display:block;font-size:15px}
+    .rv-node small{display:block;font-size:13px;color:var(--text-muted)}
+    .rv-leg{position:relative;margin-left:19px;padding:12px 0 12px 25px;min-height:52px;display:flex;align-items:center;font-size:13px;font-weight:600;color:var(--text-muted)}
+    .rv-leg::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;border-radius:3px;background:repeating-linear-gradient(to bottom,#A2A6A8 0 4px,transparent 4px 8px)}
+    .rv-leg.lane{color:#8C4B00}
+    .rv-leg.lane::before{background:repeating-linear-gradient(to bottom,var(--amazon-orange) 0 9px,transparent 9px 13px);background-size:6px 26px;animation:rvMove 1.5s linear infinite}
+    .rv-leg.amzn{color:#007185}
+    .rv-leg.amzn::before{background:repeating-linear-gradient(to bottom,#007185 0 7px,transparent 7px 10px);background-size:6px 20px;animation:rvMove 1.2s linear infinite}
+    @keyframes rvMove{from{background-position:0 0}to{background-position:0 26px}}
+    /* Combinations table -> one card per option */
+    .table-card{overflow:visible;padding:14px}
+    .table-card table{min-width:0;font-size:14px}
+    .table-card thead{display:none}
+    .table-card tbody{display:flex;flex-direction:column;gap:12px}
+    .table-card tr{display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;border:1px solid var(--border-color);border-radius:10px;padding:14px;background:#FFF}
+    .table-card tr:hover{background:#FFF}
+    .table-card td{display:block;padding:0;border:0}
+    .table-card td::before{content:attr(data-label);display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);margin-bottom:2px}
+    .table-card td:nth-child(1){grid-column:1 / -1;font-size:15px}
+    .table-card td:nth-child(1)::before{content:none}
+    .table-card td:nth-child(1) small{display:block;color:var(--text-muted);font-size:13px;margin-top:2px}
+    .table-card td:nth-child(2){font-size:16px}
+    .table-card td:nth-child(4){display:none}
+    .table-card td:nth-child(5),.table-card td:nth-child(6){grid-column:1 / -1}
+    .table-card .tag{margin-top:4px}
+  }
 </style>
 </head>
 <body>
@@ -407,6 +451,17 @@
           <polygon points="44,3 52,12 52,24 44,24" fill="#FF9900" />
         </g>
       </svg>
+
+      <!-- Phone version of the route (shown only on small screens) -->
+      <div class="route-v" aria-hidden="true">
+        <div class="rv-node"><span class="rv-dot">🏢</span><div><b>Shipper Facility</b><small>Queens / Brooklyn, NY</small></div></div>
+        <div class="rv-leg" id="v-leg1">First mile: shipper drives to dock</div>
+        <div class="rv-node amz"><span class="rv-dot">📦</span><div><b>Amazon Dock (EWR)</b><small>Direct Gateway Station</small></div></div>
+        <div class="rv-leg lane">Direct Amazon truck · I-95, no hub stops</div>
+        <div class="rv-node amz"><span class="rv-dot">🏬</span><div><b>Amazon Dock (PHL)</b><small>Destination Inbound Hub</small></div></div>
+        <div class="rv-leg" id="v-leg3">Last mile: receiver collects at dock</div>
+        <div class="rv-node"><span class="rv-dot">🏪</span><div><b>Receiver Door</b><small>Downtown Philadelphia</small></div></div>
+      </div>
     </div>
 
     <!-- Comparative Story Timelines -->
@@ -562,6 +617,16 @@
       leg3.className.baseVal = "leg-line self-managed";
     }
 
+    // 3b. Phone version of the route
+    const v1 = document.getElementById('v-leg1'), v3 = document.getElementById('v-leg3');
+    if (v1) {
+      const pick = state.firstMile === 'pickup', del = state.lastMile === 'delivery';
+      v1.className = 'rv-leg' + (pick ? ' amzn' : '');
+      v1.textContent = pick ? 'First mile: Amazon picks up (+$75)' : 'First mile: shipper drives to dock';
+      v3.className = 'rv-leg' + (del ? ' amzn' : '');
+      v3.textContent = del ? 'Last mile: Amazon delivers to door (+$75)' : 'Last mile: receiver collects at dock';
+    }
+
     // 4. Update Story Timelines
     renderStories();
   }
@@ -675,5 +740,14 @@
   updateAll();
 </script>
 
+<script>/* mobile-patch-2: label each table cell for the phone card view */
+(function(){
+  var heads=[].map.call(document.querySelectorAll('.table-card thead th'),function(th){return th.textContent.trim();});
+  heads[5]='Today\'s alternative';
+  document.querySelectorAll('.table-card tbody tr').forEach(function(tr){
+    [].forEach.call(tr.children,function(td,i){ td.setAttribute('data-label',heads[i]||''); });
+  });
+})();
+</script>
 </body>
 </html>
