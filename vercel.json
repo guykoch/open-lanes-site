@@ -1,0 +1,4 @@
+{
+  "buildCommand": "node -e \"require('fs').writeFileSync('deployed.json', JSON.stringify({t: new Date().toISOString()}))\"",
+  "outputDirectory": "."
+}
