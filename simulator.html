@@ -342,6 +342,58 @@
     .seg button{min-height:38px;font-size:13px}
     .mini-total{margin-top:2px}
   }
+/* patch-5 */
+  .route-map-container{display:none!important}
+  .olt{position:relative;display:grid;grid-template-columns:150px 140px 140px minmax(0,1fr);column-gap:22px;row-gap:5px;margin-bottom:20px}
+  .olt .q{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--text-muted);align-self:end;padding-bottom:2px;line-height:1.25}
+  .olt svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:0}
+  .olt .n{position:relative;z-index:1;border-radius:9px;padding:5px 10px;display:flex;flex-direction:column;justify-content:center;font-size:13px;line-height:1.25;
+          background:#F4F5F7;border:1.5px solid #E1E4E8;color:#8A929C;transition:all .2s}
+  .olt .n .a{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+  .olt .n b{font-size:13px}
+  .olt .n.t b{font-size:17px}
+  .olt .n.t small{font-size:11px;margin-top:2px}
+  .olt .n.on.self{background:#FFF;border-color:#3A4350;color:#232F3E}
+  .olt .n.on.amz{background:#E3F2F4;border-color:#007185;color:#007185}
+  .olt .n.on.tS{background:#FFF4E0;border-color:#FF9900;color:#A65F00}
+  .olt .n.on.tF{background:#E9F0FA;border-color:#3B6FB6;color:#3B6FB6}
+  .olt .leaf{position:relative;z-index:1;cursor:pointer;border:1px solid #E5E7EB;border-left:5px solid #D5D9DE;border-radius:9px;padding:5px 12px;
+             display:grid;grid-template-columns:minmax(0,1fr) 150px;column-gap:12px;align-items:center;background:#FFF;color:#8A929C;transition:all .2s}
+  .olt .leaf:hover{border-color:#C9CDD3}
+  .olt .leaf .r1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .olt .leaf .pr{font-size:18px;font-weight:800}
+  .olt .leaf .calc{font-size:11px}
+  .olt .leaf .tm{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:#EEF0F3;color:#8A929C;white-space:nowrap}
+  .olt .leaf .fit{font-size:13px;font-weight:600}
+  .olt .leaf .st,.olt .leaf .ph{display:none;font-size:12px;line-height:1.35}
+  .olt .leaf .R{display:flex;flex-direction:column;gap:2px;border-left:1px solid #EEF0F3;padding-left:10px;font-size:11px;line-height:1.3}
+  .olt .leaf .win{font-weight:700;font-size:11px;border-radius:4px;padding:1px 6px;background:#EEF0F3;align-self:flex-start;white-space:nowrap}
+  .olt .leaf.on{color:#0F1111;box-shadow:0 4px 14px rgba(0,0,0,.10);padding:8px 12px}
+  .olt .leaf.on.tS{border-color:#FF9900;border-left-color:#FF9900;background:#FFFCF6}
+  .olt .leaf.on.tF{border-color:#3B6FB6;border-left-color:#3B6FB6;background:#F7FAFE}
+  .olt .leaf.on .pr{color:#131921}
+  .olt .leaf.on .tm{background:#232F3E;color:#FFF}
+  .olt .leaf.on .st{display:block;color:#3A4350;margin-top:2px}
+  .olt .leaf.on .st b{color:#131921}
+  .olt .leaf.on .win{background:#E7F4EE;color:#067D62}
+  .olt .leaf.on .R{color:#565959}
+  @media (max-width:760px){
+    .olt{grid-template-columns:30px minmax(0,1fr);column-gap:8px;row-gap:6px}
+    .olt .q.c2,.olt .q.c3,.olt .n.c2,.olt .n.c3{display:none}
+    .olt .q{display:none}
+    .olt svg{display:none}
+    .olt .n.t{grid-column:1!important;padding:6px 0;align-items:center;justify-content:center}
+    .olt .n.t .a,.olt .n.t small{display:none}
+    .olt .n.t b{writing-mode:vertical-rl;transform:rotate(180deg);font-size:13px;white-space:nowrap}
+    .olt .leaf{grid-column:2!important;grid-template-columns:1fr;padding:6px 10px}
+    .olt .leaf .ph{display:block;font-size:11px;font-weight:700;color:inherit;opacity:.85}
+    .olt .leaf .R{display:none;border:0;padding:4px 0 0;flex-direction:row;flex-wrap:wrap;gap:4px 8px;align-items:center}
+    .olt .leaf.on .R{display:flex}
+    .olt .leaf .pr{font-size:17px}
+    .olt .leaf .fit{font-size:12px}
+    .olt .leaf:not(.on) .fit{display:none}
+    .olt .leaf:not(.on){padding:4px 10px}
+  }
 </style>
 </head>
 <body>
@@ -439,6 +491,9 @@
         <button data-k="lastMile" data-v="delivery" onclick="setLastMile('delivery')">Door +$75</button></div></div>
       <div class="mini-total">Total <b id="mini-total">$120</b> · <span id="mini-time">Same-Day</span></div>
     </div>
+
+    <!-- Get your track: the 8 combinations; the selected one is highlighted -->
+    <div class="olt" id="olTree"></div>
 
     <div class="route-map-container">
       <svg class="pipeline" viewBox="0 0 1000 140" id="routeSvg">
@@ -670,6 +725,8 @@
     const mt = document.getElementById('mini-total');
     if (mt) { mt.textContent = `$${total}`; document.getElementById('mini-time').textContent = transitTime; }
 
+    if (window.olUpdate) olUpdate();
+
     // 4. Update Story Timelines
     renderStories();
   }
@@ -790,6 +847,75 @@
   document.querySelectorAll('.table-card tbody tr').forEach(function(tr){
     [].forEach.call(tr.children,function(td,i){ td.setAttribute('data-label',heads[i]||''); });
   });
+})();
+</script>
+<script>/* patch-5: get-your-track tree */
+(function(){
+  const OL = [
+    {tier:'scheduled',fm:'dropoff',lm:'collect', price:120,calc:'$120',time:'Same day (~5 h)',fit:'Urgent transfer between your own sites; vehicles at both ends',
+     st:[['10:30 AM','you drop off'],['3:00 PM','receiver collects']],alt:'Hot shot van $500+, same day',win:'75% cheaper'},
+    {tier:'scheduled',fm:'dropoff',lm:'delivery',price:195,calc:'$120 + $75',time:'Same day / next-day AM',fit:'Shipper has a truck; Philly buyer has no vehicle',
+     st:[['10:30 AM','you drop off'],['4:30 PM','delivered to door']],alt:'Standard LTL $200+, 3–4 days',win:'Same price, 3× faster'},
+    {tier:'scheduled',fm:'pickup',lm:'collect', price:195,calc:'$120 + $75',time:'Same day / next-day AM',fit:'Urgent order; shipper has no truck, receiver can collect',
+     st:[['8:30 AM','Amazon picks up'],['3:00 PM','receiver collects']],alt:'Standard LTL $200+, 3–4 days',win:'Same price, 3× faster'},
+    {tier:'scheduled',fm:'pickup',lm:'delivery',price:270,calc:'$120 + $75 + $75',time:'Same day / next-day AM',fit:'Urgent B2B promise (“Prime speed”); no fleet at either end',
+     st:[['8:30 AM','Amazon picks up'],['4:30 PM','delivered to door']],alt:'Dedicated hot shot $600–$800',win:'55% cheaper'},
+    {tier:'flexible',fm:'dropoff',lm:'collect', price:90,calc:'$90',time:'Within 24 h',fit:'Lowest cost; routine, non-urgent restocking',
+     st:[['10:30 AM','you drop off'],['Day 2, 9 AM','receiver collects']],alt:'Standard LTL $180–$250, 3–4 days',win:'50% cheaper'},
+    {tier:'flexible',fm:'dropoff',lm:'delivery',price:165,calc:'$90 + $75',time:'Within 24 h',fit:'Planned restock to a store with no vehicle',
+     st:[['10:30 AM','you drop off'],['Day 2, 10 AM','delivered to door']],alt:'Standard LTL $180–$260, 3–4 days',win:'Cheaper, 3× faster'},
+    {tier:'flexible',fm:'pickup',lm:'collect', price:165,calc:'$90 + $75',time:'Within 24 h',fit:'Routine shipment; shipper has no truck',
+     st:[['8:30 AM','Amazon picks up'],['Day 2, 8 AM','receiver collects']],alt:'Standard LTL $180–$260, 3–4 days',win:'Cheaper, 3× faster'},
+    {tier:'flexible',fm:'pickup',lm:'delivery',price:240,calc:'$90 + $75 + $75',time:'Within 24–36 h',fit:'Convenience; business has no logistics fleet',
+     st:[['8:30 AM','Amazon picks up'],['Day 2, 1 PM','delivered to door']],alt:'Standard LTL $180–$260, 3–4 days',win:'Similar price, faster'}
+  ];
+  const tree = document.getElementById('olTree'); if (!tree) return;
+  const TI = {scheduled:['S','Yes, today','Scheduled $120','Spot held on a set truck'], flexible:['F','No, can wait','Flexible $90','Next truck with space, within 24 h']};
+  let h = '<svg id="olWires"></svg><div class="q">1 · Needed today?</div><div class="q c2">2 · You drop off in NY?</div><div class="q c3">3 · Receiver collects in Philly?</div><div class="q">Your track · vs today’s alternative</div>';
+  let r = 2;
+  ['scheduled','flexible'].forEach(t => {
+    const [k,a,b,s] = TI[t];
+    h += `<div class="n t t${k}" id="ol-${t}" style="grid-column:1;grid-row:${r}/span 4"><span class="a">${a}</span><b>${b}</b><small>${s}</small></div>`;
+    ['dropoff','pickup'].forEach(fm => {
+      const pid = `ol-${t}-${fm}`, pk = fm==='pickup';
+      h += `<div class="n c2 ${pk?'amz':'self'}" id="${pid}" data-p="ol-${t}" style="grid-column:2;grid-row:${r}/span 2"><span class="a">${pk?'No':'Yes'}</span><b>${pk?'Amazon pickup +$75':'You drop off $0'}</b></div>`;
+      ['collect','delivery'].forEach(lm => {
+        const o = OL.find(x => x.tier===t && x.fm===fm && x.lm===lm), dl = lm==='delivery', nid = `${pid}-${lm}`;
+        const path = `${pk?'Amazon picks up':'You drop off'} → ${dl?'Amazon delivers to door':'Receiver collects'}`;
+        h += `<div class="n c3 ${dl?'amz':'self'}" id="${nid}" data-p="${pid}" style="grid-column:3;grid-row:${r}"><span class="a">${dl?'No':'Yes'}</span><b>${dl?'Door delivery +$75':'Collects $0'}</b></div>`;
+        h += `<div class="leaf t${k}" id="${nid}-leaf" data-p="${nid}" data-t="${t}" data-f="${fm}" data-l="${lm}" style="grid-column:4;grid-row:${r}">
+          <div class="L"><div class="ph">${path}</div><div class="r1"><span class="pr">$${o.price}</span><span class="calc">${o.calc}</span><span class="tm">${o.time}</span></div>
+          <div class="fit">${o.fit}</div><div class="st"><b>${o.st[0][0]}</b> ${o.st[0][1]} → ${t==='scheduled'?'set truck to Philly':'next truck with space'} → <b>${o.st[1][0]}</b> ${o.st[1][1]}</div></div>
+          <div class="R"><span class="win">${o.win}</span><span>vs ${o.alt}</span></div></div>`;
+        r++;
+      });
+    });
+  });
+  tree.innerHTML = h;
+  tree.querySelectorAll('.leaf').forEach(l => l.addEventListener('click', () => {
+    setTier(l.dataset.t); setFirstMile(l.dataset.f); setLastMile(l.dataset.l);
+  }));
+
+  function wires(){
+    const svg = document.getElementById('olWires'); if (!svg || getComputedStyle(svg).display === 'none') return;
+    const R = tree.getBoundingClientRect(); let off = '', on = '';
+    tree.querySelectorAll('[data-p]').forEach(c => {
+      const p = document.getElementById(c.dataset.p); if (!p) return;
+      const a = p.getBoundingClientRect(), b = c.getBoundingClientRect();
+      const x1=a.right-R.left, y1=a.top+a.height/2-R.top, x2=b.left-R.left, y2=b.top+b.height/2-R.top, xm=(x1+x2)/2;
+      const d = `M${x1},${y1} H${xm} V${y2} H${x2} `;
+      if (c.classList.contains('on')) on += d; else off += d;
+    });
+    svg.innerHTML = `<path d="${off}" fill="none" stroke="#DADDE2" stroke-width="1.5"/><path d="${on}" fill="none" stroke="#232F3E" stroke-width="2.5"/>`;
+  }
+  window.olUpdate = function(){
+    const t = state.tier, f = state.firstMile, l = state.lastMile;
+    tree.querySelectorAll('.on').forEach(e => e.classList.remove('on'));
+    [`ol-${t}`, `ol-${t}-${f}`, `ol-${t}-${f}-${l}`, `ol-${t}-${f}-${l}-leaf`].forEach(id => document.getElementById(id).classList.add('on'));
+    wires();
+  };
+  window.addEventListener('resize', wires);
+  olUpdate();
 })();
 </script>
 </body>
